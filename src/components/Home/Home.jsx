@@ -1,15 +1,23 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import axios from 'axios';
-
+import './Home.css'
 import Products from "./Products/Products";
 
 
 const Home = () => {
-
+  // Hook para el juego a buscar
   const [nombre, setNombre] = useState("");
+  // Hook donde guardamos la precargar de juegos o el juego a buscar
   const [juegos, setJuegos] = useState([]);
+  // Hook para guardar el value del select para ordenar los juegos
   const [ordenar, setOrden] = useState('');
+  // Hook para ver la pagina donde estamos
+  const [paginaActual, setPaginaActual] = useState(1);
+  // Hook para limitar los juegos por pagina
+  const [juegosPorPagina] = useState(10);
+
+  
 
   useEffect(() => {
     const getGames = async() => {
@@ -34,7 +42,7 @@ const Home = () => {
 
 
   const paintGames = () => {
-    return juegos.map((juego, i) => <Products info={juego} key={i} />)
+    return elementosActuales.map((juego, i) => <Products info={juego} key={i} />)
   }
 
 
@@ -44,25 +52,45 @@ const Home = () => {
     // console.log(nombre);
   }
 
+  // Recogida y orden de los valores del select
   const sortGames = (event) => {
     setOrden(event.target.value)
   }
 
   juegos.sort((a, b) => {
-    if(ordenar === 'Barato'){
-      return a.precio - b.precio;
-    } else if(ordenar === 'Caro'){
-      return b.precio - a.precio;
-    } else if(ordenar === 'Mejor'){
-      return b.relevancia - a.relevancia;
-    } else if(ordenar === 'Peor'){
-      return a.relevancia - b.relevancia;
-    } else if(ordenar === 'A-Z'){
-      return a.nombre.localeCompare(b.nombre);
-    } else if(ordenar === 'Z-A'){
-      return b.nombre.localeCompare(a.nombre);
+    switch(ordenar) {
+      case 'Barato':
+        return a.precio - b.precio;
+      case 'Caro':
+        return b.precio - a.precio;
+      case 'Mejor':
+        return b.relevancia - a.relevancia;
+      case 'Peor':
+        return a.relevancia - b.relevancia;
+      case 'A-Z' :
+        return a.nombre.localeCompare(b.nombre);
+      case 'Z-A':
+        return b.nombre.localeCompare(a.nombre);
+      default:
+        return 0;
     }
   })
+
+
+  // Paginación -->
+  const indiceDeElementos = paginaActual * juegosPorPagina;
+  const indiceDePrimerosElementos = indiceDeElementos - juegosPorPagina;
+  const elementosActuales = juegos.slice(indiceDePrimerosElementos,indiceDeElementos);
+  
+  // Para que aparezca el numero de paginas (indices)
+  const paginas = [];
+
+  for (let i = 1; i <= Math.ceil(juegos.length / juegosPorPagina); i++) {
+    paginas.push(i);
+  }
+
+  // Cambio de paginas
+  const paginacion = paginas => setPaginaActual(paginas);
 
   
   return (
@@ -72,6 +100,8 @@ const Home = () => {
         <input type="text" name="busqueda"/><br /><br />
         <input type="submit" value="Buscar" />
       </form>
+
+      
       <div className="filtros">
         <select onChange={sortGames}>
           <option value="---">---</option>
@@ -83,6 +113,12 @@ const Home = () => {
           <option value="Z-A">Orden de la Z a la A</option>  
         </select>      
       </div>
+      <ul className="paginacion">
+        {paginas.map(numero => (
+          <li key={numero}><a onClick={() => paginacion(numero)} href="#">{numero}</a></li>
+        ))}
+      </ul>
+
       <>{paintGames()}</>
     </div>
     
