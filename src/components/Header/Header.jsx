@@ -1,9 +1,8 @@
 import React from "react";
-import {Link} from 'react-router-dom';
-
+import './Header.css'
 
 const Header = () => {
-  return <header><Link to="/">¡INFORMACIÓN DE TUS JUEGOS FAVORITOS!</Link></header>
+  return <header>¡INFORMACIÓN DE TUS JUEGOS FAVORITOS!</header>
 };
 
 export default Header;

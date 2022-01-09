@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from 'axios';
 import './Home.css'
 import Products from "./Products/Products";
+import { useDebounce } from "use-debounce";
 
 
 const Home = () => {
@@ -15,13 +16,15 @@ const Home = () => {
   // Hook para ver la pagina donde estamos
   const [paginaActual, setPaginaActual] = useState(1);
   // Hook para limitar los juegos por pagina
-  const [juegosPorPagina] = useState(10);
+  const [juegosPorPagina] = useState(8);
+  // Hook para debounce
+  const [debouncedText] = useDebounce(nombre, 1500); 
 
   
 
   useEffect(() => {
     const getGames = async() => {
-      const resp = await axios.get(`http://localhost:5000/api/games/${nombre}`);
+      const resp = await axios.get(`http://localhost:5000/api/games/${debouncedText}`);
       const json = resp.data;
       const juegoArray = json.map(element => {
         return{
@@ -38,18 +41,11 @@ const Home = () => {
       setJuegos(juegoArray)
     }
     getGames();
-  }, [nombre])
+  }, [debouncedText])
 
 
   const paintGames = () => {
     return elementosActuales.map((juego, i) => <Products info={juego} key={i} />)
-  }
-
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    setNombre(event.target.busqueda.value)
-    // console.log(nombre);
   }
 
   // Recogida y orden de los valores del select
@@ -95,31 +91,38 @@ const Home = () => {
   
   return (
     <div className="busqueda">
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="busqueda">Juego: </label>
-        <input type="text" name="busqueda"/><br /><br />
-        <input type="submit" value="Buscar" />
-      </form>
+      <div className="flex">
+        <form>
+          <label htmlFor="busqueda">Busca tus juegos:</label>
+          <input type="text" id="buscador" name="busqueda" onChange={(e) =>{
+          if(e.target.value != null) {
+            setNombre(e.target.value)
+          }
+        }}/>
+        </form>
 
-      
-      <div className="filtros">
-        <select onChange={sortGames}>
-          <option value="---">---</option>
-          <option value="Barato">Mas barato a mas caro</option>
-          <option value="Caro">Mas caro a mas barato</option>  
-          <option value="Mejor">Mejor valorado</option>    
-          <option value="Peor">Peor valorado</option>  
-          <option value="A-Z">Orden de la A a la Z</option>  
-          <option value="Z-A">Orden de la Z a la A</option>  
-        </select>      
+        <div className="filtros">
+          <select onChange={sortGames}>
+            <option value="---">"Elige para ordenar"</option>
+            <option value="Barato">Mas barato a mas caro</option>
+            <option value="Caro">Mas caro a mas barato</option>  
+            <option value="Mejor">Mejor valorado</option>    
+            <option value="Peor">Peor valorado</option>  
+            <option value="A-Z">Orden de la A a la Z</option>  
+            <option value="Z-A">Orden de la Z a la A</option>  
+          </select>      
+        </div>
+
       </div>
+      
+          <div className="cartas">
+            {paintGames()}
+            </div>
       <ul className="paginacion">
         {paginas.map(numero => (
-          <li key={numero}><a onClick={() => paginacion(numero)} href="#">{numero}</a></li>
+          <li key={numero} className="pagina"><a onClick={() => paginacion(numero)} href="#">{numero}</a></li>
         ))}
       </ul>
-
-      <>{paintGames()}</>
     </div>
     
   );
